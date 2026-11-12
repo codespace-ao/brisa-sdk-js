@@ -1,0 +1,56 @@
+{
+  "name": "@codespace-ao/brisa",
+  "version": "0.1.0",
+  "description": "SDK oficial da API Brisa (faturação certificada AGT, Angola) para Node.js e TypeScript.",
+  "license": "MIT",
+  "author": "Codespace <geral@codespace.ao>",
+  "homepage": "https://github.com/codespace-ao/brisa-sdk-js#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codespace-ao/brisa-sdk-js.git"
+  },
+  "bugs": "https://github.com/codespace-ao/brisa-sdk-js/issues",
+  "keywords": ["brisa", "faturacao", "agt", "angola", "saft", "invoicing", "sdk"],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "lint": "biome check src test examples",
+    "format": "biome check --write src test examples",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:integration": "vitest run test/integration.test.ts",
+    "prepublishOnly": "npm run lint && npm run typecheck && npm test && npm run build"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.7",
+    "@types/node": "^20.17.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}
