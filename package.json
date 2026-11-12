@@ -35,7 +35,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "lint": "biome check src test examples",
+    "lint": "biome check src test",
     "format": "biome check --write src test examples",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

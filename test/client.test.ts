@@ -34,7 +34,7 @@ function mockFetch(...replies: Reply[]) {
     }
     calls.push(call)
     const r = replies.shift()
-    if (!r) throw new Error('unexpected call ' + call.method + ' ' + call.url)
+    if (!r) throw new Error(`unexpected call ${call.method} ${call.url}`)
     if (r instanceof Error) throw r
     return typeof r === 'function' ? r(call) : r
   }) as typeof fetch
