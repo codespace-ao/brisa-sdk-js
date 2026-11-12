@@ -1,0 +1,36 @@
+name: Release
+
+# Publica no GitHub Packages (npm.pkg.github.com) quando se envia uma tag vX.Y.Z igual à versão do package.json.
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://npm.pkg.github.com
+          scope: "@codespace-ao"
+      - name: A tag é a versão do pacote
+        run: test "v$(node -p "require('./package.json').version")" = "${GITHUB_REF_NAME}"
+      - run: npm ci
+      - run: npm run lint && npm run typecheck && npm test && npm run build
+      - name: Publicar
+        run: |
+          v=$(node -p "require('./package.json').version")
+          if npm view "@codespace-ao/brisa@$v" version >/dev/null 2>&1; then echo "já publicado: $v"; else npm publish; fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release no GitHub
+        run: gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes "Ver CHANGELOG.md"
+        env:
+          GH_TOKEN: ${{ github.token }}
