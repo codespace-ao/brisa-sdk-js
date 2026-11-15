@@ -1,7 +1,7 @@
 import { type ApiResponse, type BrisaOptions, HttpClient, type RateLimit, type Request, type RequestOptions } from './http.js'
 import { Documents } from './resources/documents.js'
 import { Catalog, Clients, Products, Saft } from './resources/others.js'
-import type { Company, Me } from './types.js'
+import type { BankDetails, Company, Me } from './types.js'
 import { verifyWebhook } from './webhooks.js'
 
 /**
@@ -49,6 +49,19 @@ export class Brisa {
   /** Os dados da empresa da chave (`GET /api/v1/company`). */
   async company(options?: RequestOptions): Promise<Company> {
     return (await this.http.request<Company>({ method: 'GET', path: '/api/v1/company' }, options)).data
+  }
+
+  /** Os dados bancários da empresa (`GET /api/v1/company/bank`): o que as suas faturas por pagar dizem sobre como pagar. */
+  async bank(options?: RequestOptions): Promise<BankDetails> {
+    return (await this.http.request<BankDetails>({ method: 'GET', path: '/api/v1/company/bank' }, options)).data
+  }
+
+  /**
+   * Substitui os dados bancários da empresa (o IBAN é verificado: um angolano tem 25 caracteres e dígitos de controlo certos; tudo vazio limpa-os).
+   * Permissão `settings.manage`. Devolve o que ficou guardado.
+   */
+  async setBank(details: Partial<BankDetails>, options?: RequestOptions): Promise<BankDetails> {
+    return (await this.http.request<BankDetails>({ method: 'PUT', path: '/api/v1/company/bank', body: details }, options)).data
   }
 
   /** Um pedido qualquer à API, com autenticação, repetições e erros do SDK; devolve também o estado e os cabeçalhos. */

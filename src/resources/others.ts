@@ -5,6 +5,7 @@ import type {
   Category,
   Client,
   ClientInput,
+  ClientStatement,
   CompanyTax,
   ExemptionReason,
   ListClientsParams,
@@ -49,6 +50,31 @@ export class Clients {
   /** Ativa ou desativa o cliente. Permissão `clients.delete`. */
   async setActive(clientId: number, active: boolean, options?: RequestOptions): Promise<void> {
     await this.http.request<void>({ method: 'PUT', path: `/api/v1/clients/${seg(clientId)}/active`, body: { active } }, options)
+  }
+
+  /** A conta corrente do cliente (faturas, notas de crédito e recibos dia a dia, com o saldo). Permissões `clients.view` e `invoices.view`. */
+  async statement(clientId: number, period: { from?: string; to?: string } = {}, options?: RequestOptions): Promise<ClientStatement> {
+    return (await this.http.request<ClientStatement>({ method: 'GET', path: `/api/v1/clients/${seg(clientId)}/statement`, query: period }, options)).data
+  }
+
+  /** O extrato para imprimir (PDF, bytes). Pede também a permissão `reports.export`. */
+  async statementPdf(clientId: number, period: { from?: string; to?: string } = {}, options?: RequestOptions): Promise<Uint8Array> {
+    return (
+      await this.http.request<Uint8Array>(
+        { method: 'GET', path: `/api/v1/clients/${seg(clientId)}/statement`, query: { ...period, format: 'pdf' }, as: 'bytes', accept: 'application/pdf' },
+        options,
+      )
+    ).data
+  }
+
+  /** O extrato em CSV (texto). Pede também a permissão `reports.export`. */
+  async statementCsv(clientId: number, period: { from?: string; to?: string } = {}, options?: RequestOptions): Promise<string> {
+    return (
+      await this.http.request<string>(
+        { method: 'GET', path: `/api/v1/clients/${seg(clientId)}/statement`, query: { ...period, format: 'csv' }, as: 'text', accept: 'text/csv' },
+        options,
+      )
+    ).data
   }
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "@codespace-ao/brisa",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "SDK oficial da API Brisa (faturação certificada AGT, Angola) para Node.js e TypeScript.",
   "license": "MIT",
   "author": "Codespace <geral@codespace.ao>",

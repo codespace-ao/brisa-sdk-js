@@ -92,7 +92,7 @@ Cada método aceita, no fim, opções do pedido: `{ idempotencyKey, signal, time
 | `issue(body, opts?)` | `POST /api/v1/documents` | `invoices.issue` |
 | `list(params?)` / `listAll(params?)` | `GET /api/v1/documents` | `invoices.view` |
 | `get(id)` | `GET /api/v1/documents/{id}` | `invoices.view` |
-| `pdf(id, { format: 'a4' \| 'thermal', copy: 'original' \| 'second' })` → `Uint8Array` | `GET /api/v1/documents/{id}/pdf` | `invoices.view` |
+| `pdf(id, { format: 'a4' \| 'a5' \| 'thermal80' \| 'thermal58', copy: 'original' \| 'second' })` → `Uint8Array` | `GET /api/v1/documents/{id}/pdf` | `invoices.view` |
 | `export(id, 'json' \| 'xml')` | `GET /api/v1/documents/{id}/export` | `invoices.export` |
 | `pay(id, { method, amount? })` | `POST /api/v1/documents/{id}/payments` | `invoices.payments` |
 | `payGlobal({ documentIds, method })` | `POST /api/v1/documents/payments/global` | `invoices.payments` |
@@ -125,6 +125,38 @@ for await (const d of brisa.documents.listAll({ type: 'FT', from: '2026-11-01', 
 
 Meios de pagamento: `cash`, `credit_card`, `debit_card`, `transfer`, `check`, `multicaixa`, `other`.
 
+#### Papel: A4, A5 e rolos térmicos
+
+```ts
+const a4 = await brisa.documents.pdf(ft.id)                             // A4 (por omissão)
+const a5 = await brisa.documents.pdf(ft.id, { format: 'a5' })           // o A4 reduzido a meia folha
+const r80 = await brisa.documents.pdf(fr.id, { format: 'thermal80' })   // talão para rolo de 80 mm (FR, TV, RC, RG)
+const r58 = await brisa.documents.pdf(fr.id, { format: 'thermal58' })   // talão para rolo de 58 mm
+```
+
+#### Venda direta paga com vários meios
+
+Num `FR` ou `TV` pode pagar-se parte em numerário, parte no TPA, parte por transferência. O que se paga cobre o total; o **troco** (o que se pagou a mais) sai do
+numerário, por isso os meios que não são numerário não podem somar mais do que o total. O talão e a fatura mostram cada meio, o total pago e o troco.
+
+```ts
+const fr = await brisa.documents.issue({
+  type: 'FR',
+  lines: [{ description: 'Cimento 50 kg', quantity: 1, unitPrice: 100 }],
+  payment: { payments: [{ method: 'debit_card', amount: 50 }, { method: 'cash', amount: 100 }] }, // 114 a pagar: 36 de troco
+})
+const d = await brisa.documents.get(fr.id) // d.paymentMethod === 'mixed', d.payments, d.amountReceived
+```
+
+#### Dados bancários nas faturas por pagar
+
+```ts
+await brisa.setBank({ bankName: 'BAI', holder: 'Ngola Comercial, Lda', iban: 'AO06 0040 0000 6789 1234 5678 9', kwikKey: '923000000' })
+await brisa.documents.issue({ type: 'FT', clientId: 42, lines })                                // leva os dados da empresa
+await brisa.documents.issue({ type: 'FT', clientId: 42, lines, bankDetails: { iban: '...' } })  // outros, só nesta fatura
+await brisa.documents.issue({ type: 'FT', clientId: 42, lines, printBankDetails: false })        // nenhuns
+```
+
 ### Clientes (`brisa.clients`)
 
 ```ts
@@ -133,7 +165,17 @@ await brisa.clients.update(id, { name: 'Cliente Exemplo, Lda', taxId: '500000000
 await brisa.clients.setActive(id, false)
 const page = await brisa.clients.list({ q: 'Exemplo', activeOnly: false, size: 50 })
 const c = await brisa.clients.get(id)
+
+// por quanto se faturou a cada um (`totals` acrescenta invoiced, amountDue, lastInvoiceDate e documents)
+const top = await brisa.clients.list({ sort: 'invoiced:desc', totals: true, size: 10 })
+
+// a conta corrente do cliente, e para imprimir (precisa também de `reports.export`)
+const statement = await brisa.clients.statement(id, { from: '2026-11-01', to: '2026-11-30' })
+const pdf = await brisa.clients.statementPdf(id)
+const csv = await brisa.clients.statementCsv(id)
 ```
+
+Ordens da lista: `name` (por omissão), `taxId`, `city`, `createdAt` e, que pedem os totais, `invoiced`, `due`, `lastInvoice`, `documents`.
 
 ### Produtos e stock (`brisa.products`)
 
@@ -163,6 +205,7 @@ const xml = await brisa.saft.file(pedido.id)          // o ficheiro SAF-T (AO)
 
 * `brisa.me()`: quem é a chave (`apikey:<id>`) e as permissões.
 * `brisa.company()`: os dados da empresa da chave.
+* `brisa.bank()` / `brisa.setBank(details)`: os dados bancários da empresa (IBAN verificado), que as faturas por pagar imprimem.
 * `brisa.rateLimit`: `{ limit, remaining, reset }` da última resposta.
 
 ### Outros pedidos

@@ -77,9 +77,30 @@ export interface DocumentLineInput {
   exemptionReason?: string
 }
 
-export interface PaymentAtIssue {
+/** Um meio de pagamento e o que se pagou com ele. */
+export interface PaymentPart {
   method: PaymentMethod
-  amountReceived: number
+  /** Maior que zero, com no máximo 2 casas decimais. */
+  amount: number
+}
+
+/**
+ * Como uma venda direta (`FR`, `TV`) foi paga: **um meio** e o valor entregue (`amountReceived`, por omissão exatamente o total), **ou vários meios ao mesmo tempo**
+ * (`payments`, até 6: parte em numerário, parte no TPA, parte em transferência), nunca os dois. O que se paga cobre o total; o troco (o que se pagou a mais) sai do
+ * numerário, por isso os meios que não são numerário não podem somar mais do que o total (`422`). Uma lista de um só meio vale como um só meio.
+ */
+export type PaymentAtIssue = { method: PaymentMethod; amountReceived?: number; payments?: undefined } | { payments: PaymentPart[]; method?: undefined; amountReceived?: undefined }
+
+/** Como pagar uma fatura: o banco, o titular, o IBAN, o n.º de conta, a chave Kwik e o número do Multicaixa Express (todos opcionais, uma linha cada). */
+export interface BankDetails {
+  bankName: string
+  holder: string
+  /** Um IBAN válido (o angolano tem 25 caracteres); guardado sem espaços e em maiúsculas. */
+  iban: string
+  accountNumber: string
+  kwikKey: string
+  expressNumber: string
+  notes: string
 }
 
 export interface IssueDocumentRequest {
@@ -105,6 +126,13 @@ export interface IssueDocumentRequest {
   paymentTermsDays?: number
   notes?: string
   contingency?: boolean
+  /**
+   * Só em `FT` e `PF` (faturas a pagar mais tarde): os dados bancários **desta** fatura. Sem isto, leva os da empresa (`company.bank()`). Cada campo é opcional;
+   * a fatura imprime-os enquanto estiver por pagar.
+   */
+  bankDetails?: Partial<BankDetails>
+  /** `false`: esta fatura não leva dados bancários. */
+  printBankDetails?: boolean
 }
 
 /** Resposta de uma emissão (documento, recibo ou nota de crédito). */
@@ -200,13 +228,24 @@ export interface DocumentDetail {
   agtRequestId?: string
   /** `REFUSED` quando a AGT recusou a anulação. */
   agtCancelStatus?: string | null
+  /** O meio de pagamento (`mixed` quando foram vários: ver `payments`). */
+  paymentMethod?: PaymentMethod | 'mixed' | null
+  /** O que se entregou (numa venda direta); o troco é isto menos `payable`. */
+  amountReceived?: number | null
+  /** Os meios, quando foram vários; vazio quando foi um só. */
+  payments?: PaymentPart[]
+  /** Como pagar, tal como a fatura dizia ao ser emitida; `null` quando não dizia nada. */
+  bankDetails?: BankDetails | null
   lines: DocumentLine[]
   [extra: string]: unknown
 }
 
 export interface PdfOptions {
-  /** `a4` (por omissão) ou `thermal` (talão de 80 mm: só FR, TV, RC e RG). */
-  format?: 'a4' | 'thermal'
+  /**
+   * `a4` (por omissão), `a5` (o A4 reduzido a meia folha), `thermal80` (talão para rolo de 80 mm; `thermal` é o mesmo) ou `thermal58` (rolo de 58 mm).
+   * Os talões só existem para FR, TV, RC e RG.
+   */
+  format?: 'a4' | 'a5' | 'thermal' | 'thermal80' | 'thermal58'
   /** `original` (por omissão) ou `second` (2.ª via). */
   copy?: 'original' | 'second'
 }
@@ -341,6 +380,14 @@ export interface Client {
   comments: string
   active: boolean
   createdAt: string
+  /** Só numa lista pedida com `totals: true` (e nunca para o consumidor final): o que se faturou ao cliente (faturas, vendas diretas e notas de débito, menos notas de crédito). */
+  invoiced?: number
+  /** Idem: o que o cliente ainda deve. */
+  amountDue?: number
+  /** Idem: a data da última fatura (AAAA-MM-DD). */
+  lastInvoiceDate?: string
+  /** Idem: quantos documentos de venda. */
+  documents?: number
 }
 
 export interface ListClientsParams extends PageParams {
@@ -348,6 +395,39 @@ export interface ListClientsParams extends PageParams {
   q?: string
   /** Só ativos (por omissão `true`). */
   activeOnly?: boolean
+  /**
+   * A ordem: `campo[:asc|:desc][,campo...]` entre `name` (por omissão), `taxId`, `city`, `createdAt` e, que pedem os totais, `invoiced`, `due`, `lastInvoice`, `documents`.
+   */
+  sort?: string
+  /** `true` inverte um campo que não diga a direção. */
+  desc?: boolean
+  /** Acrescenta a cada cliente `invoiced`, `amountDue`, `lastInvoiceDate` e `documents`. */
+  totals?: boolean
+}
+
+/** Um movimento da conta corrente: débito (o que o cliente passou a dever) ou crédito (o que pagou ou lhe foi creditado), com o saldo a seguir. */
+export interface StatementEntry {
+  date: string
+  reference: string
+  type: string
+  description: string
+  debit: number
+  credit: number
+  balance: number
+}
+
+/** A conta corrente de um cliente: faturas, notas de crédito e recibos dia a dia; um saldo positivo é o que o cliente deve. */
+export interface ClientStatement {
+  clientId: number
+  taxId: string
+  name: string
+  from: string
+  to: string
+  opening: number
+  entries: StatementEntry[]
+  debits: number
+  credits: number
+  closing: number
 }
 
 // ---------------------------------------------------------------- produtos e catálogo
