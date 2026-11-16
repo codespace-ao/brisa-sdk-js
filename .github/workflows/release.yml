@@ -2,8 +2,8 @@ name: Release
 
 # Publishes to npm with provenance when a vX.Y.Z tag equal to the package.json version is pushed.
 # Controls: only maintainers can create v* tags (repository ruleset); the job runs in the "npm" environment,
-# which needs a maintainer's approval and only accepts v* tags; the token lives only in that environment.
-# Preferred: npm Trusted Publishing (OIDC, no long-lived token). Fallback: NPM_TOKEN secret in the "npm" environment.
+# which needs a maintainer's approval and only accepts v* tags. Authentication is npm Trusted Publishing (OIDC):
+# npmjs.com trusts codespace-ao/brisa-sdk-js, release.yml, environment npm; there is no long-lived npm token anywhere.
 on:
   push:
     tags: ["v*.*.*"]
@@ -29,11 +29,11 @@ jobs:
           registry-url: https://registry.npmjs.org
       - name: The tag is the package version
         run: test "v$(node -p "require('./package.json').version")" = "${GITHUB_REF_NAME}"
+      - name: npm with trusted publishing support (11.5.1 or later)
+        run: npm install -g npm@^11.5.1 && npm --version
       - run: npm ci --ignore-scripts
       - run: npm run lint && npm run typecheck && npm test && npm run build
-      - name: Publish to npm
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish to npm (OIDC, with provenance)
         run: |
           v=$(node -p "require('./package.json').version")
           if npm view "brisa-sdk@$v" version >/dev/null 2>&1; then echo "already published: $v"; exit 0; fi
