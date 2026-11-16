@@ -10,7 +10,7 @@ Obrigado por querer ajudar. Este guia diz como propor uma mudança e o que esper
 
 ## Preparar o ambiente
 
-Precisa de Node.js 18 ou mais recente.
+Para desenvolver precisa de Node.js 20 ou mais recente (o pacote publicado continua a funcionar a partir do Node 18; o CI confirma-o).
 
 ```bash
 git clone https://github.com/codespace-ao/brisa-sdk-js.git
@@ -43,6 +43,14 @@ Um *pull request* é aceite quando o CI passa, tem testes e um mantenedor o apro
 * Formatação e *lint* com [Biome](https://biomejs.dev): `npm run format` corrige o que for automático.
 * Mensagens de *commit* no estilo convencional: `fix(pdf): ...`, `feat(clients): ...`, `docs: ...`.
 * Texto para pessoas (documentação, mensagens de erro) em português de Angola; código e comentários em inglês ou português, como o ficheiro já estiver.
+
+## Quem decide e como sai uma versão
+
+O projeto é aberto a contribuições, mas é mantido pela Codespace: só os mantenedores (ver `.github/CODEOWNERS`) aprovam e juntam *pull requests* e publicam versões.
+
+* `main` está protegido: só entra por *pull request*, com o CI verde, a revisão de um mantenedor e as conversas resolvidas; sem *force push*.
+* Uma versão sai quando um mantenedor cria a etiqueta `vX.Y.Z` (só mantenedores o podem fazer) e aprova a publicação no ambiente `npm`. O pacote é publicado pelo GitHub Actions com **proveniência** (`npm audit signatures` confirma que veio deste repositório).
+* As dependências são revistas em cada *pull request* (vulnerabilidades e licenças) e as Actions estão fixas por SHA.
 
 ## Compatibilidade
 

@@ -1,37 +1,44 @@
 name: Release
 
-# Publica no npm (com proveniência) quando se envia uma tag vX.Y.Z igual à versão do package.json.
-# Precisa do segredo NPM_TOKEN (token "Automation" da conta que publica). Sem ele, só cria a release no GitHub.
+# Publishes to npm with provenance when a vX.Y.Z tag equal to the package.json version is pushed.
+# Controls: only maintainers can create v* tags (repository ruleset); the job runs in the "npm" environment,
+# which needs a maintainer's approval and only accepts v* tags; the token lives only in that environment.
+# Preferred: npm Trusted Publishing (OIDC, no long-lived token). Fallback: NPM_TOKEN secret in the "npm" environment.
 on:
   push:
     tags: ["v*.*.*"]
 
 permissions:
-  contents: write
-  id-token: write # proveniência npm
+  contents: read
 
 jobs:
   publish:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: npm
+    permissions:
+      contents: write # GitHub release
+      id-token: write # npm provenance / trusted publishing
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
           registry-url: https://registry.npmjs.org
-      - name: A tag é a versão do pacote
+      - name: The tag is the package version
         run: test "v$(node -p "require('./package.json').version")" = "${GITHUB_REF_NAME}"
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npm run lint && npm run typecheck && npm test && npm run build
-      - name: Publicar no npm
+      - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           v=$(node -p "require('./package.json').version")
-          if [ -z "$NODE_AUTH_TOKEN" ]; then echo "::warning::NPM_TOKEN não está definido: não se publica no npm"; exit 0; fi
-          if npm view "brisa-sdk@$v" version >/dev/null 2>&1; then echo "já publicado: $v"; else npm publish --provenance --access public; fi
-      - name: Release no GitHub
-        run: gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes
+          if npm view "brisa-sdk@$v" version >/dev/null 2>&1; then echo "already published: $v"; exit 0; fi
+          npm publish --provenance --access public
+      - name: GitHub release
+        run: gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes --verify-tag
         env:
           GH_TOKEN: ${{ github.token }}
