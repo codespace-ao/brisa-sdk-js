@@ -4,37 +4,67 @@ on:
   push: { branches: [main] }
   pull_request:
 
+# Least privilege: jobs only read the repository. Actions are pinned to full commit SHAs (Dependabot keeps them current).
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
-    name: Lint, typecheck, testes (Node ${{ matrix.node }})
+    name: Lint, typecheck, tests (Node ${{ matrix.node }})
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     strategy:
+      fail-fast: false
       matrix:
-        node: [18, 20, 22]
+        node: [20, 22, 24]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: "${{ matrix.node }}", cache: npm }
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - name: The published files are only the expected ones
+        run: npm pack --dry-run --json | node -e "const f=JSON.parse(require('fs').readFileSync(0))[0].files.map(x=>x.path);const bad=f.filter(p=>!/^(dist\/|docs\/|README\.md$|CHANGELOG\.md$|LICENSE$|package\.json$)/.test(p));if(bad.length){console.error('unexpected files in the package:',bad);process.exit(1)}console.log(f.length,'files')"
+
+  runtime-node18:
+    # The SDK still runs on Node 18 (no runtime dependencies, global fetch); the dev tooling needs Node 20+.
+    name: Runtime smoke test (Node 18)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --ignore-scripts && npm run build
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: 18 }
+      - name: ESM and CommonJS load and reject a bad key without the network
+        run: |
+          node -e "const { Brisa } = require('./dist/index.cjs'); if (typeof new Brisa({ apiKey: 'x' }).documents.issue !== 'function') process.exit(1)"
+          node --input-type=module -e "import { Brisa, signWebhookPayload, verifyWebhook } from './dist/index.js'; const b = '{}'; const h = await signWebhookPayload(b, 's'); await verifyWebhook(b, h, 's'); console.log(typeof Brisa)"
 
   integration:
-    name: Integração (sandbox)
-    # só corre quando o repositório tem a chave de sandbox e o endereço configurados
+    name: Integration (sandbox)
+    # only on main, and only when the repository has the sandbox key and URL configured
     if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     env:
       BRISA_API_KEY: ${{ secrets.BRISA_API_KEY }}
       BRISA_API_URL: ${{ vars.BRISA_API_URL }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: 22, cache: npm }
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npm run test:integration
