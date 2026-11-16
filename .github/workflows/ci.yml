@@ -16,7 +16,7 @@ jobs:
         node: [18, 20, 22]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: "${{ matrix.node }}", cache: npm }
       - run: npm ci
       - run: npm run lint
@@ -34,7 +34,7 @@ jobs:
       BRISA_API_URL: ${{ vars.BRISA_API_URL }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 22, cache: npm }
       - run: npm ci
       - run: npm run test:integration
