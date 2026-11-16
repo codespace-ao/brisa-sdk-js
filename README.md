@@ -1,13 +1,13 @@
-# @codespace-ao/brisa
+# brisa-sdk
 
-[![npm](https://img.shields.io/npm/v/@codespace-ao/brisa)](https://www.npmjs.com/package/@codespace-ao/brisa)
+[![npm](https://img.shields.io/npm/v/brisa-sdk)](https://www.npmjs.com/package/brisa-sdk)
 [![CI](https://github.com/codespace-ao/brisa-sdk-js/actions/workflows/ci.yml/badge.svg)](https://github.com/codespace-ao/brisa-sdk-js/actions/workflows/ci.yml)
 [![licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue.svg)](LICENSE)
 
 SDK oficial da [API Brisa](https://brisa.ao/developers) para JavaScript e TypeScript: faturação certificada pela AGT (Angola), clientes, artigos, SAF-T e webhooks.
 
 ```ts
-import { Brisa } from '@codespace-ao/brisa'
+import { Brisa } from 'brisa-sdk'
 
 const brisa = new Brisa() // lê BRISA_API_KEY
 
@@ -29,10 +29,10 @@ const pdf = await brisa.documents.pdf(fatura.id, { format: 'a5' })
 ## Instalação
 
 ```bash
-npm install @codespace-ao/brisa
+npm install brisa-sdk
 ```
 
-(Ou `pnpm add`, `yarn add`, `bun add`.) Com CommonJS: `const { Brisa } = require('@codespace-ao/brisa')`.
+(Ou `pnpm add`, `yarn add`, `bun add`.) Com CommonJS: `const { Brisa } = require('brisa-sdk')`.
 
 ## Início rápido
 

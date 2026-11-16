@@ -18,7 +18,7 @@ Pode usar a API só com HTTP, mas o SDK repete pedidos falhados, gera as chaves 
 
 ```bash
 # JavaScript / TypeScript (Node.js 18+, Deno, Bun)
-npm install @codespace-ao/brisa
+npm install brisa-sdk
 
 # PHP 8.1+
 composer require codespace-ao/brisa-php
@@ -31,7 +31,7 @@ curl https://api.brisa.ao/api/v1/me -H "Authorization: Bearer $BRISA_API_KEY"
 ```
 
 ```ts
-import { Brisa } from '@codespace-ao/brisa'
+import { Brisa } from 'brisa-sdk'
 
 const brisa = new Brisa() // lê BRISA_API_KEY
 console.log(await brisa.me())

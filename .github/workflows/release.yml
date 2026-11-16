@@ -30,7 +30,7 @@ jobs:
         run: |
           v=$(node -p "require('./package.json').version")
           if [ -z "$NODE_AUTH_TOKEN" ]; then echo "::warning::NPM_TOKEN não está definido: não se publica no npm"; exit 0; fi
-          if npm view "@codespace-ao/brisa@$v" version >/dev/null 2>&1; then echo "já publicado: $v"; else npm publish --provenance --access public; fi
+          if npm view "brisa-sdk@$v" version >/dev/null 2>&1; then echo "já publicado: $v"; else npm publish --provenance --access public; fi
       - name: Release no GitHub
         run: gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes
         env:

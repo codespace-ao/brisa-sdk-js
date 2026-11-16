@@ -14,7 +14,7 @@ Os webhooks registam-se na aplicação (não com a chave de API). O segredo (`wh
 
 ```ts
 import express from 'express'
-import { BrisaWebhookSignatureError, verifyWebhook } from '@codespace-ao/brisa'
+import { BrisaWebhookSignatureError, verifyWebhook } from 'brisa-sdk'
 
 app.post('/webhooks/brisa', express.raw({ type: 'application/json' }), async (req, res) => {
   try {

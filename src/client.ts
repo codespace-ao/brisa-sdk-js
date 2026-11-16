@@ -8,7 +8,7 @@ import { verifyWebhook } from './webhooks.js'
  * Cliente da API Brisa.
  *
  * ```ts
- * import { Brisa } from '@codespace-ao/brisa'
+ * import { Brisa } from 'brisa-sdk'
  * const brisa = new Brisa({ apiKey: process.env.BRISA_API_KEY })
  * const doc = await brisa.documents.issue({ type: 'FT', clientId: 42, lines: [{ productCode: 'PAR-M8', quantity: 4 }] })
  * ```

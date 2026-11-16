@@ -25,7 +25,7 @@ A API responde a falhas com um documento [RFC 9457](https://www.rfc-editor.org/r
 ## Tratar no código
 
 ```ts
-import { BrisaApiError, BrisaRuleError } from '@codespace-ao/brisa'
+import { BrisaApiError, BrisaRuleError } from 'brisa-sdk'
 
 try {
   await brisa.documents.issue(body)
