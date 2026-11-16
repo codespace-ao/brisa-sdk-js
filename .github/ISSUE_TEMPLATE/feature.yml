@@ -1,0 +1,11 @@
+name: Ideia
+description: Um recurso novo ou uma melhoria
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes: { label: Que problema quer resolver, description: "Conte o caso concreto, não só a solução." }
+    validations: { required: true }
+  - type: textarea
+    id: idea
+    attributes: { label: Como imagina que funcione }

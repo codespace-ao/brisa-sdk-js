@@ -1,0 +1,23 @@
+name: Falha
+description: Algo não funciona como a documentação diz
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Não ponha aqui chaves de API nem dados de clientes. Falhas de segurança: veja SECURITY.md."
+  - type: input
+    id: version
+    attributes: { label: Versão do SDK, placeholder: "0.2.0" }
+    validations: { required: true }
+  - type: input
+    id: runtime
+    attributes: { label: Ambiente, placeholder: "Node 22 / Bun 1.2 / Deno 2" }
+    validations: { required: true }
+  - type: textarea
+    id: what
+    attributes: { label: O que aconteceu, description: "E o que esperava que acontecesse." }
+    validations: { required: true }
+  - type: textarea
+    id: repro
+    attributes: { label: Como reproduzir, description: "O mínimo de código que mostra a falha.", render: ts }
+    validations: { required: true }

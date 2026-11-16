@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Falha de segurança
+    url: https://github.com/codespace-ao/brisa-sdk-js/security/advisories/new
+    about: Reporte em privado, nunca numa issue pública.
+  - name: Dúvidas sobre a API ou a conta
+    url: mailto:geral@codespace.ao
+    about: Para questões da API Brisa, não do SDK.

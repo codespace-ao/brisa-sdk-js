@@ -1,13 +1,14 @@
 name: Release
 
-# Publica no GitHub Packages (npm.pkg.github.com) quando se envia uma tag vX.Y.Z igual à versão do package.json.
+# Publica no npm (com proveniência) quando se envia uma tag vX.Y.Z igual à versão do package.json.
+# Precisa do segredo NPM_TOKEN (token "Automation" da conta que publica). Sem ele, só cria a release no GitHub.
 on:
   push:
     tags: ["v*.*.*"]
 
 permissions:
   contents: write
-  packages: write
+  id-token: write # proveniência npm
 
 jobs:
   publish:
@@ -18,19 +19,19 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          registry-url: https://npm.pkg.github.com
-          scope: "@codespace-ao"
+          registry-url: https://registry.npmjs.org
       - name: A tag é a versão do pacote
         run: test "v$(node -p "require('./package.json').version")" = "${GITHUB_REF_NAME}"
       - run: npm ci
       - run: npm run lint && npm run typecheck && npm test && npm run build
-      - name: Publicar
+      - name: Publicar no npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           v=$(node -p "require('./package.json').version")
-          if npm view "@codespace-ao/brisa@$v" version >/dev/null 2>&1; then echo "já publicado: $v"; else npm publish; fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          if [ -z "$NODE_AUTH_TOKEN" ]; then echo "::warning::NPM_TOKEN não está definido: não se publica no npm"; exit 0; fi
+          if npm view "@codespace-ao/brisa@$v" version >/dev/null 2>&1; then echo "já publicado: $v"; else npm publish --provenance --access public; fi
       - name: Release no GitHub
-        run: gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes "Ver CHANGELOG.md"
+        run: gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}

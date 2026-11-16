@@ -95,7 +95,7 @@ export type PaymentAtIssue = { method: PaymentMethod; amountReceived?: number; p
 export interface BankDetails {
   bankName: string
   holder: string
-  /** Um IBAN válido (o angolano tem 25 caracteres); guardado sem espaços e em maiúsculas. */
+  /** O IBAN como se escreve (não é verificado); imprime-se tal e qual. */
   iban: string
   accountNumber: string
   kwikKey: string
