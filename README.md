@@ -151,7 +151,7 @@ const d = await brisa.documents.get(fr.id) // d.paymentMethod === 'mixed', d.pay
 #### Dados bancários nas faturas por pagar
 
 ```ts
-await brisa.setBank({ bankName: 'BAI', holder: 'Ngola Comercial, Lda', iban: 'AO06 0040 0000 6789 1234 5678 9', kwikKey: '923000000' })
+await brisa.setBank({ bankName: 'BAI', holder: 'Ngola Comercial, Lda', iban: 'AO83 0040 0000 6789 1234 5678 9', kwikKey: '923000000' })
 await brisa.documents.issue({ type: 'FT', clientId: 42, lines })                                // leva os dados da empresa
 await brisa.documents.issue({ type: 'FT', clientId: 42, lines, bankDetails: { iban: '...' } })  // outros, só nesta fatura
 await brisa.documents.issue({ type: 'FT', clientId: 42, lines, printBankDetails: false })        // nenhuns
