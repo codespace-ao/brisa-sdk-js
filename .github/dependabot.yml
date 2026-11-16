@@ -6,6 +6,10 @@ updates:
     open-pull-requests-limit: 5
     groups:
       dev-dependencies: { dependency-type: development }
+    ignore:
+      # o rollup-plugin-dts (usado pelo tsup para os .d.ts) ainda não funciona com o TypeScript 7
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
