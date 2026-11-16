@@ -28,17 +28,82 @@ const pdf = await brisa.documents.pdf(fatura.id, { format: 'a5' })
 
 ## Instalação
 
+### Requisitos
+
+* **Node.js 18 ou mais recente** (`node --version`). Também funciona em Bun, Deno e *edge runtimes* com `fetch` e Web Crypto.
+* Uma **chave de API** da Brisa: veja o passo 1 do início rápido.
+
+### 1. Instale o pacote
+
+Com o gestor de pacotes do seu projeto:
+
 ```bash
 npm install brisa-sdk
 ```
 
-(Ou `pnpm add`, `yarn add`, `bun add`.) Com CommonJS: `const { Brisa } = require('brisa-sdk')`.
+```bash
+pnpm add brisa-sdk
+```
+
+```bash
+yarn add brisa-sdk
+```
+
+```bash
+bun add brisa-sdk
+```
+
+Em Deno não é preciso instalar: importe `npm:brisa-sdk` diretamente (`import { Brisa } from 'npm:brisa-sdk'`).
+
+### 2. Importe
+
+```ts
+// ESM / TypeScript
+import { Brisa } from 'brisa-sdk'
+```
+
+```js
+// CommonJS
+const { Brisa } = require('brisa-sdk')
+```
+
+Os tipos TypeScript vêm no pacote; não há `@types` para instalar.
+
+### 3. Guarde a chave numa variável de ambiente
+
+```bash
+# Linux / macOS
+export BRISA_API_KEY="brk_sbx_a_sua_chave"
+```
+
+```powershell
+# Windows (PowerShell)
+$env:BRISA_API_KEY = "brk_sbx_a_sua_chave"
+```
+
+Ou num ficheiro `.env` que **não** vai para o repositório (adicione-o ao `.gitignore`). Sem a opção `apiKey`, o SDK lê `BRISA_API_KEY`.
+
+### 4. Confirme que funciona
+
+```bash
+node -e "import('brisa-sdk').then(async ({ Brisa }) => console.log(await new Brisa().me()))"
+```
+
+A resposta diz quem é a chave e que permissões tem. Um erro `BrisaAuthenticationError` (401) quer dizer que a chave está errada, revogada ou foi usada de um IP não permitido.
+
+### Atualizar
+
+```bash
+npm install brisa-sdk@latest
+```
+
+Antes de mudar de versão menor, leia o [guia de atualização](docs/upgrade.md) e o [CHANGELOG](CHANGELOG.md).
 
 ## Início rápido
 
-1. Na aplicação Brisa crie a **sandbox** e uma **chave de API** (`brk_sbx_...`).
-2. `export BRISA_API_KEY="brk_sbx_a_sua_chave"`
-3. Corra o exemplo acima. Quando funcionar, troque a chave pela da empresa real (`brk_...`): **é a chave que escolhe o ambiente**, o endereço é o mesmo.
+1. Na aplicação Brisa (definições da empresa) crie a **sandbox** e, nela, uma **chave de API** (`brk_sbx_...`). A chave só é mostrada uma vez.
+2. Guarde-a em `BRISA_API_KEY` (passo 3 acima).
+3. Corra o exemplo do topo. Quando funcionar, troque a chave pela da empresa real (`brk_...`): **é a chave que escolhe o ambiente**, o endereço é o mesmo.
 
 ## Documentação
 
