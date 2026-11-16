@@ -57,8 +57,7 @@
     "prepublishOnly": "npm run lint && npm run typecheck && npm test && npm run build"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.7",
